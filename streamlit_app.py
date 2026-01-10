@@ -55,8 +55,10 @@ if prompt := st.chat_input("Ask about breakout stocks..."):
     Basis this data:
     {df_supabase}
     
-    Breakout price is latest close price crossing 52 Week High price and name is stock name.
-    
+    Column "name" is stock name and most important parameter for this chatbot response. 
+    'id' is not important to the user. 'created_at' is the date when scan ran and picked the stock names.
+    Any query relating to days consolidation, the column of reference is 'Days since consolidation', which shows number of days after which the stock is breaking out and the 'Breakout price' is the current price at which the breakout is happening. 
+    Column 'Relative Strength (vs Nifty 50)' indicates the relative strength of the stock against Nifty 50, a value greater than 0, indicates out-performance and a good stock, higher the value means higher the out-performance and vice-versa.
     Question: {prompt}.
     
     Give short crisp to the point answer.
@@ -73,53 +75,4 @@ if prompt := st.chat_input("Ask about breakout stocks..."):
     
     except Exception as e:
         st.error(f"Error generating response: {e}")
-
-
-
-
-# import streamlit as st
-# import pandas as pd
-# from supabase import create_client
-# import google.generativeai as genai
-
-# # 1. Setup Connection
-# url = "https://vgicevfkzjdfwziwoubo.supabase.co"
-# key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaWNldmZrempkZnd6aXdvdWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjYzMDgsImV4cCI6MjA4MzAwMjMwOH0.GOyGvHTyYBNqsamPt6_N9OJN4Yv_HXZP6tnTTkOeGdk"
-# supabase = create_client(url, key)
-
-# # Fetch data
-# response = supabase.table("daily_scans_test").select("*").execute()
-
-# # Convert to Pandas DataFrame
-# df_supabase = pd.DataFrame(response.data)
-
-
-# st.write(df_supabase)
-
-
-# genai.configure(api_key="AIzaSyAWUxpAfyQEllH_Jt_vVZrtposZXybbj7U")
-# model = genai.GenerativeModel("gemini-2.5-flash")
-
-
-# # 3. Helper function to ask questions
-# def ask_dataframe(query, dataframe):
-#     # We pass the dataframe as a string (CSV format is token-efficient)
-#     prompt = f"""
-#     Basis this data:
-#     {dataframe}
-    
-#     Breakout price is lastest close price crossing 52 Week High price and name is stock name.
-    
-#     Question: {query}.
-    
-#     Give short crisp to the point answer.
-    
-#     """
-#     response = model.generate_content(prompt)
-#     return response.text
-
-# # 4. Example usage
-# answer = ask_dataframe("Why is Reliance industries not in this list", df_supabase)
-
-
 
