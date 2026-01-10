@@ -47,18 +47,16 @@ if prompt := st.chat_input("Ask about breakout stocks..."):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # Prepare context for the AI
-    # We convert dataframe to markdown/CSV for the prompt
-    # df_context = df_supabase.to_markdown() 
     
     full_prompt = f"""
     Basis this data:
     {df_supabase}
     
-    Column "name" is stock name and most important parameter for this chatbot response. 
-    'id' is not important to the user. 'created_at' is the date when scan ran and picked the stock names.
-    Any query relating to days consolidation, the column of reference is 'Days since consolidation', which shows number of days after which the stock is breaking out and the 'Breakout price' is the current price at which the breakout is happening. 
-    Column 'Relative Strength (vs Nifty 50)' indicates the relative strength of the stock against Nifty 50, a value greater than 0, indicates out-performance and a good stock, higher the value means higher the out-performance and vice-versa.
+    The name column in the given data is stock name and most important parameter for this chatbot response. 
+    id column from the data is not important to the user. created_at column from the data is the date when scan ran and picked the stock names.
+    Any query relating to days consolidation, the column of reference is Days since consolidation column, which shows number of days after which the stock is breaking out and the 'Breakout price' is the current price at which the breakout is happening. 
+    Column named Relative Strength (vs Nifty 50) indicates the relative strength of the stock against Nifty 50, a value greater than 0, indicates out-performance and a good stock, higher the value means higher the out-performance and vice-versa.
+    
     Question: {prompt}.
     
     Give short crisp to the point answer.
