@@ -76,6 +76,8 @@ max_date = df['date_column'].max().date()
 
 
 
+
+
 if choice == "Swing Momentum":
     
     # 1. Initialize Session State (at the top of the choice)
@@ -111,37 +113,41 @@ if choice == "Swing Momentum":
         
         if not res_df.empty:
             # Metrics
-            a, b, c = st.columns(3)
+            a, b = st.columns([3, 3], gap="medium")
             a.metric(f"Stocks for {st.session_state.last_date}", len(res_df), border=True)
 
-            # Prepare columns for display
-            display_df = res_df[['name', 'Breakout_price', 'Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
-                columns={'name': 'Stock Name', 'Breakout_price': 'Price'}
-            )
+            left_col, right_col = st.columns([2, 3], gap="medium")
 
-            # Dataframe Selection
-            event = st.dataframe(
-                display_df,
-                key="stock_table",
-                on_select="rerun",
-                selection_mode="single-row",
-                use_container_width=True,
-                hide_index=True
-            )
+            with a:
+                # Prepare columns for display
+                display_df = res_df[['name', 'Breakout_price', 'Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
+                    columns={'name': 'Stock Name', 'Breakout_price': 'Price'}
+                )
 
-            # 4. Detailed Analysis (Survives reruns because it's outside the submit block)
-            selected_indices = event.selection.get("rows", [])
+                # Dataframe Selection
+                event = st.dataframe(
+                    display_df,
+                    key="stock_table",
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    use_container_width=True,
+                    hide_index=True
+                )
 
-            if selected_indices:
-                selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
-                st.write("---")
-                st.subheader(f"🎯 Analysis for {selected_name}")
-                st.info(f"Detailed view for **{selected_name}** is active.")
-                # Add your charts or more stats here!
-            else:
-                st.write("💡 *Click a row in the table above to view details.*")
+            with b:
+                # 4. Detailed Analysis (Survives reruns because it's outside the submit block)
+                selected_indices = event.selection.get("rows", [])
+
+                if selected_indices:
+                    selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
+                    st.write("---")
+                    st.subheader(f"🎯 Analysis for {selected_name}")
+                    st.info(f"Detailed view for **{selected_name}** is active.")
+                    # Add your charts or more stats here!
+                else:
+                    st.write("💡 *Click a row in the table above to view details.*")
         else:
-            st.warning("No data found for the selected date.")
+            st.warning("Click Refresh Data")
 
 
 
