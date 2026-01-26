@@ -6,6 +6,7 @@ from streamlit_option_menu import option_menu
 from streamlit_echarts import st_echarts
 from candlestick_chart import candlestick_chart_display
 from stock_data_fun import getHistData
+from PIL import Image
 
 # 1. Initialize "Memory" (Session State)
 if "data_loaded" not in st.session_state:
@@ -16,16 +17,56 @@ if "df_results" not in st.session_state:
 # --- TOP NAVIGATION MENU ---
 st.set_page_config(page_title="TraDatAnalytix", page_icon="tradatanalytix logo.png", layout="wide")
 
+
+
+# 2. Header Section with Logo
+col_logo, col_text = st.columns([0.5, 5])
+
+with col_logo:
+    # Adjust width to keep the logo crisp and professional
+    st.image("tradatanalytix logo.png", width=70) 
+
+with col_text:
+    # Optional: Add a subtle title or leave empty for a clean look
+    st.markdown("<h1 style='color: #D4AF37; padding-top: 10px;'>TraDatAnalytix</h1>", unsafe_allow_html=True)
+
+# 3. Horizontal Navigation Menu
+# This will sit directly under the logo, acting as a secondary bar
+choice = option_menu(
+    menu_title=None,
+    options=["Swing Momentum", "Stock Analysis", "Settings"],
+    icons=["house", "graph-up-arrow", "gear"],
+    menu_icon="cast",
+    default_index=0,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "#FFFFFF"},
+        "icon": {"color": "#D4AF37", "font-size": "18px"}, # TraDatAnalytix Gold
+        "nav-link": {
+            "font-size": "16px", 
+            "text-align": "center", 
+            "margin": "0px", 
+            "--hover-color": "#F9E076" # Soft Gold hover
+        },
+        "nav-link-selected": {"background-color": "#D4AF37"}, # Active Tab Gold
+    }
+)
+
+
+
+
+
+
 # --- TOP NAVIGATION MENU ---
 # This creates a clean, horizontal bar at the top
-choice = option_menu(
-    menu_title=None,  # Hide the menu title
-    options=["Swing Momentum", "Stock Analysis", "Settings"], # Menu options
-    icons=["house", "graph-up-arrow", "gear"], # Bootstrap icons
-    menu_icon="cast", 
-    default_index=0, 
-    orientation="horizontal",
-)
+# choice = option_menu(
+#     menu_title=None,  # Hide the menu title
+#     options=["Swing Momentum", "Stock Analysis", "Settings"], # Menu options
+#     icons=["house", "graph-up-arrow", "gear"], # Bootstrap icons
+#     menu_icon="cast", 
+#     default_index=0, 
+#     orientation="horizontal",
+# )
 
 
 # Supabase Setup
