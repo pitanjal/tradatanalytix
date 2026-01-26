@@ -124,14 +124,19 @@ if choice == "Swing Momentum":
         if not res_df.empty:
             # Metrics
             a, b = st.columns([3, 3], gap="medium")
-            a.metric(f"Stocks for {st.session_state.last_date}", len(res_df), border=True)
 
-            left_col, right_col = st.columns([2, 3], gap="medium")
+            
 
             with a:
-                # Prepare columns for display
-                display_df = res_df[['name', 'Breakout_price', 'Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
-                    columns={'name': 'Stock Name', 'Breakout_price': 'Price'}
+                
+                left_col, right_col = st.columns([2, 3], gap="small")
+                left_col.metric(f"Stocks for {st.session_state.last_date}", len(res_df), border=True)
+                right_col.metric(f"Stock Market Sentiment", "Bullish", border=True)
+                
+
+                # Prepare columns for display -- 'Relative Strength (vs Nifty 50)',
+                display_df = res_df[['name', 'Breakout_price', 'Days since consolidation']].rename(
+                    columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
                 )
 
                 # Dataframe Selection
@@ -145,14 +150,11 @@ if choice == "Swing Momentum":
                 )
 
             with b:
-                # 4. Detailed Analysis (Survives reruns because it's outside the submit block)
+                
                 selected_indices = event.selection.get("rows", [])
 
                 if selected_indices:
                     selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
-                    # st.write("---")
-                    st.subheader(f"🎯 {selected_name}")
-                    st.info(f"Detailed view for **{selected_name}** is Coming Soon!")
                     match = symboldf2[symboldf2['name'] == selected_name]
                     if not match.empty:
                         # 2. Extract the key safely
@@ -166,6 +168,7 @@ if choice == "Swing Momentum":
                     )
 
                     with top_left_cell:
+                        st.subheader(f"{selected_name}")
 
 
                         # 1. Ensure the date column is datetime-ready
