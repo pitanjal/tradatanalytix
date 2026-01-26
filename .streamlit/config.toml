@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#0047BB"          # Citi Blue accent for buttons/sliders
-backgroundColor = "#FFFFFF"       # Main background
-secondaryBackgroundColor = "#F0F2F6" # Sidebar and widget background
-textColor = "#1D1D1D"             # Professional dark grey/black text
-font = "sans serif"               # Clean, professional look
+primaryColor = "#D4AF37"          # Rich Gold for buttons/links
+backgroundColor = "#FFFFFF"       # White for that clean look you requested
+secondaryBackgroundColor = "#F0F2F6" # Light grey for the sidebar
+textColor = "#333333"             # Deep charcoal for readability
+font = "sans serif"
