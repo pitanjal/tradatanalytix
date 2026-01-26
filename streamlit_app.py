@@ -7,6 +7,7 @@ from streamlit_echarts import st_echarts
 from candlestick_chart import candlestick_chart_display
 from stock_data_fun import getHistData
 from PIL import Image
+import streamlit.components.v1 as components
 
 # 1. Initialize "Memory" (Session State)
 if "data_loaded" not in st.session_state:
@@ -51,6 +52,8 @@ choice = option_menu(
         "nav-link-selected": {"background-color": "#D4AF37"}, # Active Tab Gold
     }
 )
+
+
 
 
 
@@ -212,8 +215,16 @@ if choice == "Swing Momentum":
 
                         st_echarts(options=printcandlechart, height="400px")
 
+
+                        # trendlyne_widget()
+
                 else:
                     st.write("💡 *Click a row in the table above to view details.*")
         else:
             st.warning("Click Refresh Data")
+    
+    
+
+
+
 
