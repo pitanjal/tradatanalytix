@@ -168,7 +168,6 @@ if choice == "Swing Momentum":
                     with top_left_cell:
 
 
-
                         # 1. Ensure the date column is datetime-ready
                         df_stock['date'] = pd.to_datetime(df_stock['date'])
 
@@ -184,150 +183,8 @@ if choice == "Swing Momentum":
 
                         st_echarts(options=printcandlechart, height="400px")
 
-                    
-                    #     horizon_map = {
-                    #     "1 Months": "1mo",
-                    #     "3 Months": "3mo",
-                    #     "6 Months": "6mo",
-                    #     "1 Year": "1y",
-                    #     "5 Years": "5y",
-                    #     "10 Years": "10y",
-                    #     "20 Years": "20y",
-                    # }
-                    #     # Buttons for picking time horizon
-                    #     horizon = st.pills(
-                    #         "Time horizon",
-                    #         options=list(horizon_map.keys()),
-                    #         default="6 Months",
-                    #     )
-
-
-                    # Add your charts or more stats here!
                 else:
                     st.write("💡 *Click a row in the table above to view details.*")
         else:
             st.warning("Click Refresh Data")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# if choice == "Swing Momentum":
-        
-#         with st.container(border=False):
-#             # st.subheader("🛠️ Data Controls")
-#             # Using a form so the app only refreshes on 'Submit'
-#             with st.form("data_filter_form"):
-#                 col1, col2 = st.columns([5, 1])
-                
-#                 with col1:
-#                     selected_date = st.date_input(
-#                             "Select a date to view scans:",
-#                             value=max_date, # Default to the most recent date
-#                             min_value=min_date,
-#                             max_value=max_date
-#                         )
-
-#                 with col2:
-#                     st.write(" ") # Spacer for alignment
-#                     submit_button = st.form_submit_button(label="🚀 Refresh Data")
-
-#         if submit_button:
-
-#             a, b, c = st.columns(3)
-
-#             # 4. Filter the dataframe
-#             # We compare the .dt.date version of the column to the selected_date
-#             mask = df['date_column'].dt.date == selected_date
-#             filtered_df = df[mask]
-
-#             st.session_state.df_results = filtered_df.copy()
-#             st.session_state.data_loaded = True
-
-#             if st.session_state.data_loaded and not st.session_state.df_results.empty:
-    
-#                 display_df = filtered_df[['name', 'Breakout_price','Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
-#                 columns={
-#                         'name': 'Stock Name',
-#                         'Breakout_price': 'Price',
-#                         'Relative Strength (vs Nifty 50)': 'Relative Strength (vs Nifty 50)',
-#                             'Days since consolidation' : 'Days since consolidation'
-#                     })
-
-#                 # 5. Display results
-#                 st.write(f"### Results for {selected_date}")
-#                 a.metric(f"### # Stocks for {selected_date}", len(filtered_df), border = True)
-
-#                 if not filtered_df.empty:
-#                     # st.table(filtered_df, border="horizontal")
-#                     # 3. Create the interactive dataframe
-#                     event = st.dataframe(
-#                         display_df,
-#                         key="stock_table",
-#                         on_select="rerun",
-#                         selection_mode="single-row", # Simplified for row selection
-#                         use_container_width=True,
-#                         hide_index=True
-#                     )
-
-#                     # 4. Logic to display the selected Stock Name
-#                     selected_indices = event.selection["rows"]
-
-#                     if selected_indices:
-#                         # Get the names based on the selected row indices
-#                         selected_names = display_df.iloc[selected_indices]['Stock Name'].tolist()
-                        
-#                         st.write("---")
-#                         st.subheader("🎯 Selected Stocks for Analysis")
-                        
-#                         # Display them nicely
-#                         for name in selected_names:
-#                             st.info(f"Viewing detailed analysis for: **{name}**")
-#                     else:
-#                         st.write("💡 *Click a row in the table above to view details.*")
-
-#                 # st.dataframe(display_df, hide_index=True, use_container_width=True)
- 
-                
-                
-#             else:
-#                 st.warning("No data found for the selected date.")
 
