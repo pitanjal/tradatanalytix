@@ -2,10 +2,30 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client
 import google.generativeai as genai
+from streamlit_option_menu import option_menu
 
-# --- 1. SETUP & CONFIGURATION ---
-st.set_page_config(page_title="Stock Data Assistant", layout="wide")
-st.title("📈 Stock Data Chatbot")
+
+# 1. Initialize "Memory" (Session State)
+if "data_loaded" not in st.session_state:
+    st.session_state.data_loaded = False
+if "df_results" not in st.session_state:
+    st.session_state.df_results = pd.DataFrame()
+
+# --- TOP NAVIGATION MENU ---
+st.set_page_config(page_title="Data & Stock Hub", layout="wide")
+
+# --- TOP NAVIGATION MENU ---
+# This creates a clean, horizontal bar at the top
+choice = option_menu(
+    menu_title=None,  # Hide the menu title
+    options=["Swing Momentum", "Stock Analysis", "Settings"], # Menu options
+    icons=["house", "graph-up-arrow", "gear"], # Bootstrap icons
+    menu_icon="cast", 
+    default_index=0, 
+    orientation="horizontal",
+)
+
+
 
 # Supabase Setup
 url = "https://vgicevfkzjdfwziwoubo.supabase.co"
@@ -16,61 +36,233 @@ supabase = create_client(url, key)
 genai.configure(api_key="AIzaSyAWUxpAfyQEllH_Jt_vVZrtposZXybbj7U")
 model = genai.GenerativeModel("gemini-2.5-flash") # Note: Adjusted to currently available flash model
 
-# --- 2. DATA FETCHING ---
-@st.cache_data(ttl=600) # Cache data for 10 minutes
-def get_data():
-    response = supabase.table("daily_scans_test").select("*").execute()
-    return pd.DataFrame(response.data)
 
-df_supabase = get_data()
 
-# Optional: Show data in a sidebar toggle
-with st.sidebar:
-    if st.checkbox("Show Raw Data"):
-        st.write(df_supabase)
-
-# --- 3. CHATBOT LOGIC ---
-
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# React to user input
-if prompt := st.chat_input("Ask about breakout stocks..."):
-    # Display user message in chat message container
-    st.chat_message("user").markdown(prompt)
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
-    
-    full_prompt = f"""
-    Basis this data:
-    {df_supabase}
-    
-    The name column in the given data is stock name and most important parameter for this chatbot response. 
-    id column from the data is not important to the user. created_at column from the data is the date when scan ran and picked the stock names.
-    Any query relating to days consolidation, the column of reference is Days since consolidation column, which shows number of days after which the stock is breaking out and the 'Breakout price' is the current price at which the breakout is happening. 
-    Column named Relative Strength (vs Nifty 50) indicates the relative strength of the stock against Nifty 50, a value greater than 0, indicates out-performance and a good stock, higher the value means higher the out-performance and vice-versa.
-    
-    Question: {prompt}.
-    
-    Give short crisp to the point answer.
+def fetch_all_supabase_data(table_name, batch_size=1000):
     """
-
-    try:
-        # Generate Response
-        with st.chat_message("assistant"):
-            response = model.generate_content(full_prompt)
-            st.markdown(response.text)
-        
-        # Add assistant response to history
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
+    Fetches all rows from a Supabase table by paginating through records.
+    """
+    all_rows = []
+    start_index = 0
     
-    except Exception as e:
-        st.error(f"Error generating response: {e}")
+    while True:
+        # Fetch a chunk of data
+        response = (
+            supabase.table(table_name)
+            .select("*")
+            .range(start_index, start_index + batch_size - 1)
+            .execute()
+        )
+        
+        chunk = response.data
+        all_rows.extend(chunk)
+        
+        # If we got fewer rows than requested, we've reached the end
+        if len(chunk) < batch_size:
+            break
+            
+        start_index += batch_size
+        
+    return pd.DataFrame(all_rows)
+
+# Usage:
+df = fetch_all_supabase_data("daily_scans_test")
+df['date_column'] = pd.to_datetime(df['created_at'])
+
+
+# Get unique dates for the slider/picker range (optional but helpful)
+min_date = df['date_column'].min().date()
+max_date = df['date_column'].max().date()
+
+
+
+if choice == "Swing Momentum":
+    
+    # 1. Initialize Session State (at the top of the choice)
+    if "df_results" not in st.session_state:
+        st.session_state.df_results = None
+    if "last_date" not in st.session_state:
+        st.session_state.last_date = None
+
+    with st.container(border=False):
+        with st.form("data_filter_form"):
+            col1, col2 = st.columns([5, 1])
+            with col1:
+                selected_date = st.date_input(
+                    "Select a date to view scans:",
+                    value=max_date,
+                    min_value=min_date,
+                    max_value=max_date
+                )
+            with col2:
+                st.write(" ") 
+                submit_button = st.form_submit_button(label="🚀 Refresh Data")
+
+    # 2. DATA PROCESSING (Only runs on button click)
+    if submit_button:
+        mask = df['date_column'].dt.date == selected_date
+        # Save to session state so it survives the row-click rerun
+        st.session_state.df_results = df[mask].copy()
+        st.session_state.last_date = selected_date
+
+    # 3. DISPLAY LOGIC (Always runs if data exists in session state)
+    if st.session_state.df_results is not None:
+        res_df = st.session_state.df_results
+        
+        if not res_df.empty:
+            # Metrics
+            a, b, c = st.columns(3)
+            a.metric(f"Stocks for {st.session_state.last_date}", len(res_df), border=True)
+
+            # Prepare columns for display
+            display_df = res_df[['name', 'Breakout_price', 'Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
+                columns={'name': 'Stock Name', 'Breakout_price': 'Price'}
+            )
+
+            # Dataframe Selection
+            event = st.dataframe(
+                display_df,
+                key="stock_table",
+                on_select="rerun",
+                selection_mode="single-row",
+                use_container_width=True,
+                hide_index=True
+            )
+
+            # 4. Detailed Analysis (Survives reruns because it's outside the submit block)
+            selected_indices = event.selection.get("rows", [])
+
+            if selected_indices:
+                selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
+                st.write("---")
+                st.subheader(f"🎯 Analysis for {selected_name}")
+                st.info(f"Detailed view for **{selected_name}** is active.")
+                # Add your charts or more stats here!
+            else:
+                st.write("💡 *Click a row in the table above to view details.*")
+        else:
+            st.warning("No data found for the selected date.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# if choice == "Swing Momentum":
+        
+#         with st.container(border=False):
+#             # st.subheader("🛠️ Data Controls")
+#             # Using a form so the app only refreshes on 'Submit'
+#             with st.form("data_filter_form"):
+#                 col1, col2 = st.columns([5, 1])
+                
+#                 with col1:
+#                     selected_date = st.date_input(
+#                             "Select a date to view scans:",
+#                             value=max_date, # Default to the most recent date
+#                             min_value=min_date,
+#                             max_value=max_date
+#                         )
+
+#                 with col2:
+#                     st.write(" ") # Spacer for alignment
+#                     submit_button = st.form_submit_button(label="🚀 Refresh Data")
+
+#         if submit_button:
+
+#             a, b, c = st.columns(3)
+
+#             # 4. Filter the dataframe
+#             # We compare the .dt.date version of the column to the selected_date
+#             mask = df['date_column'].dt.date == selected_date
+#             filtered_df = df[mask]
+
+#             st.session_state.df_results = filtered_df.copy()
+#             st.session_state.data_loaded = True
+
+#             if st.session_state.data_loaded and not st.session_state.df_results.empty:
+    
+#                 display_df = filtered_df[['name', 'Breakout_price','Relative Strength (vs Nifty 50)', 'Days since consolidation']].rename(
+#                 columns={
+#                         'name': 'Stock Name',
+#                         'Breakout_price': 'Price',
+#                         'Relative Strength (vs Nifty 50)': 'Relative Strength (vs Nifty 50)',
+#                             'Days since consolidation' : 'Days since consolidation'
+#                     })
+
+#                 # 5. Display results
+#                 st.write(f"### Results for {selected_date}")
+#                 a.metric(f"### # Stocks for {selected_date}", len(filtered_df), border = True)
+
+#                 if not filtered_df.empty:
+#                     # st.table(filtered_df, border="horizontal")
+#                     # 3. Create the interactive dataframe
+#                     event = st.dataframe(
+#                         display_df,
+#                         key="stock_table",
+#                         on_select="rerun",
+#                         selection_mode="single-row", # Simplified for row selection
+#                         use_container_width=True,
+#                         hide_index=True
+#                     )
+
+#                     # 4. Logic to display the selected Stock Name
+#                     selected_indices = event.selection["rows"]
+
+#                     if selected_indices:
+#                         # Get the names based on the selected row indices
+#                         selected_names = display_df.iloc[selected_indices]['Stock Name'].tolist()
+                        
+#                         st.write("---")
+#                         st.subheader("🎯 Selected Stocks for Analysis")
+                        
+#                         # Display them nicely
+#                         for name in selected_names:
+#                             st.info(f"Viewing detailed analysis for: **{name}**")
+#                     else:
+#                         st.write("💡 *Click a row in the table above to view details.*")
+
+#                 # st.dataframe(display_df, hide_index=True, use_container_width=True)
+ 
+                
+                
+#             else:
+#                 st.warning("No data found for the selected date.")
 
