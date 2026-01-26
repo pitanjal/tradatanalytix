@@ -34,8 +34,8 @@ with col_text:
 # This will sit directly under the logo, acting as a secondary bar
 choice = option_menu(
     menu_title=None,
-    options=["Swing Momentum", "Stock Analysis", "Settings"],
-    icons=["house", "graph-up-arrow", "gear"],
+    options=["Swing Momentum", "Portfolio Analysis"],
+    icons=["house", "graph-up-arrow"],
     menu_icon="cast",
     default_index=0,
     orientation="horizontal",
@@ -52,21 +52,6 @@ choice = option_menu(
     }
 )
 
-
-
-
-
-
-# --- TOP NAVIGATION MENU ---
-# This creates a clean, horizontal bar at the top
-# choice = option_menu(
-#     menu_title=None,  # Hide the menu title
-#     options=["Swing Momentum", "Stock Analysis", "Settings"], # Menu options
-#     icons=["house", "graph-up-arrow", "gear"], # Bootstrap icons
-#     menu_icon="cast", 
-#     default_index=0, 
-#     orientation="horizontal",
-# )
 
 
 # Supabase Setup
