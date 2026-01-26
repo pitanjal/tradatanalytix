@@ -14,7 +14,7 @@ if "df_results" not in st.session_state:
     st.session_state.df_results = pd.DataFrame()
 
 # --- TOP NAVIGATION MENU ---
-st.set_page_config(page_title="TraDatAnalytix", layout="wide")
+st.set_page_config(page_title="TraDatAnalytix", page_icon="tradatanalytix logo.png", layout="wide")
 
 # --- TOP NAVIGATION MENU ---
 # This creates a clean, horizontal bar at the top
