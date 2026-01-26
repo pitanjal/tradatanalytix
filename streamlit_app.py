@@ -12,7 +12,7 @@ if "df_results" not in st.session_state:
     st.session_state.df_results = pd.DataFrame()
 
 # --- TOP NAVIGATION MENU ---
-st.set_page_config(page_title="Data & Stock Hub", layout="wide")
+st.set_page_config(page_title="TraDatAnalytix", layout="wide")
 
 # --- TOP NAVIGATION MENU ---
 # This creates a clean, horizontal bar at the top
@@ -140,9 +140,31 @@ if choice == "Swing Momentum":
 
                 if selected_indices:
                     selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
-                    st.write("---")
+                    # st.write("---")
                     st.subheader(f"🎯 Analysis for {selected_name}")
-                    st.info(f"Detailed view for **{selected_name}** is active.")
+                    st.info(f"Detailed view for **{selected_name}** is Coming Soon!")
+                    top_left_cell = st.container(
+                        border=True, height="stretch", vertical_alignment="center"
+                    )
+
+                    with top_left_cell:
+                        horizon_map = {
+                        "1 Months": "1mo",
+                        "3 Months": "3mo",
+                        "6 Months": "6mo",
+                        "1 Year": "1y",
+                        "5 Years": "5y",
+                        "10 Years": "10y",
+                        "20 Years": "20y",
+                    }
+                        # Buttons for picking time horizon
+                        horizon = st.pills(
+                            "Time horizon",
+                            options=list(horizon_map.keys()),
+                            default="6 Months",
+                        )
+
+
                     # Add your charts or more stats here!
                 else:
                     st.write("💡 *Click a row in the table above to view details.*")
