@@ -3,7 +3,9 @@ import pandas as pd
 from supabase import create_client
 import google.generativeai as genai
 from streamlit_option_menu import option_menu
-
+from streamlit_echarts import st_echarts
+from candlestick_chart import candlestick_chart_display
+from stock_data_fun import getHistData
 
 # 1. Initialize "Memory" (Session State)
 if "data_loaded" not in st.session_state:
@@ -26,15 +28,23 @@ choice = option_menu(
 )
 
 
-
 # Supabase Setup
 url = "https://vgicevfkzjdfwziwoubo.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaWNldmZrempkZnd6aXdvdWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjYzMDgsImV4cCI6MjA4MzAwMjMwOH0.GOyGvHTyYBNqsamPt6_N9OJN4Yv_HXZP6tnTTkOeGdk"
 supabase = create_client(url, key)
 
+
 # Gemini Setup
 genai.configure(api_key="AIzaSyAWUxpAfyQEllH_Jt_vVZrtposZXybbj7U")
 model = genai.GenerativeModel("gemini-2.5-flash") # Note: Adjusted to currently available flash model
+
+# Upstox Master
+fileUrl ='https://assets.upstox.com/market-quote/instruments/exchange/complete.csv.gz'
+symboldf = pd.read_csv(fileUrl)
+bse_full_stocks = symboldf[symboldf['exchange'].str.contains('BSE', case=False, na=False) & symboldf['instrument_type'].str.contains('EQ', case=False, na=False) &
+                           symboldf['last_price'] > 0]
+symboldf2 = bse_full_stocks[['instrument_key', 'name']]
+# st.dataframe(symboldf2)
 
 
 
@@ -141,28 +151,55 @@ if choice == "Swing Momentum":
                 if selected_indices:
                     selected_name = display_df.iloc[selected_indices[0]]['Stock Name']
                     # st.write("---")
-                    st.subheader(f"🎯 Analysis for {selected_name}")
+                    st.subheader(f"🎯 {selected_name}")
                     st.info(f"Detailed view for **{selected_name}** is Coming Soon!")
+                    match = symboldf2[symboldf2['name'] == selected_name]
+                    if not match.empty:
+                        # 2. Extract the key safely
+                        instrument_key = match['instrument_key'].iloc[0]
+                        df_stock = getHistData(instrument_key)
+                        # st.write(f"The key for {selected_name} is: {instrument_key}")
+                    else:
+                        st.error(f"Symbol '{selected_name}' not found in the list.")
                     top_left_cell = st.container(
                         border=True, height="stretch", vertical_alignment="center"
                     )
 
                     with top_left_cell:
-                        horizon_map = {
-                        "1 Months": "1mo",
-                        "3 Months": "3mo",
-                        "6 Months": "6mo",
-                        "1 Year": "1y",
-                        "5 Years": "5y",
-                        "10 Years": "10y",
-                        "20 Years": "20y",
-                    }
-                        # Buttons for picking time horizon
-                        horizon = st.pills(
-                            "Time horizon",
-                            options=list(horizon_map.keys()),
-                            default="6 Months",
-                        )
+
+
+
+                        # 1. Ensure the date column is datetime-ready
+                        df_stock['date'] = pd.to_datetime(df_stock['date'])
+
+                        # 2. Extract values
+                        dfohlc = df_stock[["close", "open", "low", "high"]]
+
+                        # 3. Convert to JSON-serializable lists
+                        datelist = df_stock['date'].dt.strftime('%Y-%m-%d').tolist()
+                        ohlclist = dfohlc.to_numpy().tolist()
+
+                        # 4. Pass to chart
+                        printcandlechart = candlestick_chart_display(datelist, ohlclist)
+
+                        st_echarts(options=printcandlechart, height="400px")
+
+                    
+                    #     horizon_map = {
+                    #     "1 Months": "1mo",
+                    #     "3 Months": "3mo",
+                    #     "6 Months": "6mo",
+                    #     "1 Year": "1y",
+                    #     "5 Years": "5y",
+                    #     "10 Years": "10y",
+                    #     "20 Years": "20y",
+                    # }
+                    #     # Buttons for picking time horizon
+                    #     horizon = st.pills(
+                    #         "Time horizon",
+                    #         options=list(horizon_map.keys()),
+                    #         default="6 Months",
+                    #     )
 
 
                     # Add your charts or more stats here!
