@@ -39,10 +39,10 @@ def candlestick_chart_display(datelist, ohlclist):
                 "type": 'candlestick',
                 "data": ohlclist,
                 "itemStyle": {
-                    "color": "#089981",       # Green for Bullish
-                    "color0": "#f23645",      # Red for Bearish
-                    "borderColor": "#089981", # Matches border to fill
-                    "borderColor0": "#f23645" # Matches border to fill
+                    "color0": "#089981",       # Green for Bullish
+                    "color": "#f23645",      # Red for Bearish
+                    "borderColor0": "#089981", # Matches border to fill
+                    "borderColor": "#f23645" # Matches border to fill
                 }
             }
         ]
