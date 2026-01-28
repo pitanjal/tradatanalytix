@@ -8,6 +8,10 @@ from candlestick_chart import candlestick_chart_display
 from stock_data_fun import getHistData
 from PIL import Image
 import streamlit.components.v1 as components
+import google.generativeai as genai
+import json
+
+
 
 # 1. Initialize "Memory" (Session State)
 if "data_loaded" not in st.session_state:
@@ -41,7 +45,7 @@ choice = option_menu(
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": "#FFFFFF"},
+        "container": {"padding": "0!important", "background-color": "#EBEAE7"},
         "icon": {"color": "#D4AF37", "font-size": "18px"}, # TraDatAnalytix Gold
         "nav-link": {
             "font-size": "16px", 
@@ -168,6 +172,8 @@ if choice == "Swing Momentum":
                     columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
                 )
 
+                st.session_state.global_display_df = display_df
+
                 # Dataframe Selection
                 event = st.dataframe(
                     display_df,
@@ -223,8 +229,44 @@ if choice == "Swing Momentum":
         else:
             st.warning("Click Refresh Data")
     
+
+# 1. Setup Data & API
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-2.5-flash')
+# response = model.generate_content("Price of Reliance")
+# st.write(response)
+
+if 'global_display_df' not in st.session_state:
+    st.session_state.global_display_df = pd.DataFrame({
+        "stock_name": ["RELIANCE", "TCS", "INFY", "HDFC"],
+        "price": [2500, 3400, 1500, 1600],
+        "range_days": [15, 30, 10, 45]
+    })
+
+st.title("✨ Stock-AI")
+
+# 2. The Chat Interface
+if prompt := st.chat_input("How should I sort the data? (e.g., 'sort by price high to low')"):
     
+    # System prompt to ensure Gemini returns ONLY valid JSON
+    system_prompt = f"""
+    You are a data assistant. Your job is to use {st.session_state.global_display_df}
+    and perform
+    User request: {prompt} and show the top 5 stock names.
+    """
+    
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-
+    # 3. Intelligence Logic
+    response = model.generate_content(system_prompt).text
+    
+    try:
+        with st.chat_message("assistant"):
+            st.markdown(response)
+        
+        
+    except Exception as e:
+        st.error(f"Could not parse sorting logic. Error: {e}")
 
 
