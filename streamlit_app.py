@@ -243,30 +243,31 @@ if 'global_display_df' not in st.session_state:
         "range_days": [15, 30, 10, 45]
     })
 
-st.title("✨ Stock-AI")
+
+st.subheader("✨ Stock-AI")
 
 # 2. The Chat Interface
-if prompt := st.chat_input("How should I sort the data? (e.g., 'sort by price high to low')"):
+if prompt := st.chat_input("Top 5 stocks basis range days? (e.g., 'Show stocks from Banking sector')"):
     
-    # System prompt to ensure Gemini returns ONLY valid JSON
-    system_prompt = f"""
-    You are a data assistant. Your job is to use {st.session_state.global_display_df}
-    and perform
-    User request: {prompt} and show the top 5 stock names.
-    """
-    
-    with st.chat_message("user"):
-        st.markdown(prompt)
+        # System prompt to ensure Gemini returns ONLY valid JSON
+        system_prompt = f"""
+        You are a data assistant. Your job is to use {st.session_state.global_display_df}
+        and perform
+        User request: {prompt} and show the top 5 stock names.
+        """
+        
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-    # 3. Intelligence Logic
-    response = model.generate_content(system_prompt).text
-    
-    try:
-        with st.chat_message("assistant"):
-            st.markdown(response)
+        # 3. Intelligence Logic
+        response = model.generate_content(system_prompt).text
         
-        
-    except Exception as e:
-        st.error(f"Could not parse sorting logic. Error: {e}")
+        try:
+            with st.chat_message("assistant"):
+                st.markdown(response)
+            
+            
+        except Exception as e:
+            st.error(f"Could not parse sorting logic. Error: {e}")
 
 
