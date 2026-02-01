@@ -281,27 +281,71 @@ st.subheader("✨ Stock-AI")
 
 # st.write(st.session_state.global_display_df)
 
-# 2. The Chat Interface
-if prompt := st.chat_input("Top 5 stocks basis range days? (e.g., 'Show stocks from Banking sector')"):
-    
-        # System prompt to ensure Gemini returns ONLY valid JSON
-        system_prompt = f"""
-        Your job is to just use the data I have given: {st.session_state.global_display_df}. Do not hallucinate clearly tell if information is unavailable or you are not able to find from data.
-        Answer the following from the data: {prompt}.
-        """
-        
-        with st.chat_message("user"):
-            st.markdown(prompt)
+# 1. Define the System Instructions (The "Training")
+ANALYST_INSTRUCTIONS = """
+You are a Senior Equity Research Analyst. When answering, follow these rules:
+1. ALWAYS prioritize quality metrics: ROE (Annual %), Piotroski Score (7-9 is good), and PEG Ratio (< 1.5 is good).
+2. If the user asks for "best" or "top" stocks without specific criteria, use a multi-factor approach (Quality + Valuation + Momentum).
+3. Use Markdown tables for data comparison.
+4. If data is missing for a specific stock, explicitly mention "Data Unavailable" instead of omitting the stock or guessing.
+5. End with a 1-sentence disclaimer about market risks.
+"""
 
-        # 3. Intelligence Logic
-        response = model.generate_content(system_prompt).text
+if prompt := st.chat_input("Top 5 stocks in the Energy sector?"):
+    
+    # 2. Prepare Data (Token Optimization)
+    # Convert only relevant columns to CSV to save tokens
+    # We use CSV because it's more token-efficient than JSON for LLMs
+    data_context = st.session_state.global_display_df.to_csv(index=False)
+
+    # 3. Construct the Prompt
+    full_system_prompt = f"""
+    {ANALYST_INSTRUCTIONS}
+    
+    CONTEXT DATA (CSV):
+    {data_context}
+    
+    USER REQUEST:
+    {prompt}
+    """
+    
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # 4. Intelligence Logic
+    try:
+        # Use stream=True for a better UI experience
+        response = model.generate_content(full_system_prompt)
         
-        try:
-            with st.chat_message("assistant"):
-                st.markdown(response)
+        with st.chat_message("assistant"):
+            st.markdown(response.text)
+            
+    except Exception as e:
+        st.error(f"Analysis Error: {e}")
+
+
+# 2. The Chat Interface
+
+# if prompt := st.chat_input("Top 5 stocks basis range days? (e.g., 'Show stocks from Banking sector')"):
+    
+#         # System prompt to ensure Gemini returns ONLY valid JSON
+#         system_prompt = f"""
+#         Your job is to just use the data I have given: {st.session_state.global_display_df}. Do not hallucinate clearly tell if information is unavailable or you are not able to find from data.
+#         Answer the following from the data: {prompt}.
+#         """
+        
+#         with st.chat_message("user"):
+#             st.markdown(prompt)
+
+#         # 3. Intelligence Logic
+#         response = model.generate_content(system_prompt).text
+        
+#         try:
+#             with st.chat_message("assistant"):
+#                 st.markdown(response)
             
             
-        except Exception as e:
-            st.error(f"Could not parse sorting logic. Error: {e}")
+#         except Exception as e:
+#             st.error(f"Could not parse sorting logic. Error: {e}")
 
 
