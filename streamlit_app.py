@@ -186,23 +186,25 @@ if choice == "Swing Momentum":
             with a:
                 
                 left_col, right_col = st.columns([2, 3], gap="small")
-                left_col.metric(f"Stocks for {st.session_state.last_date}", len(res_df), border=True)
-                right_col.metric(f"Stock Market Sentiment", "Bullish", border=True)
-                
-
-                # Prepare columns for display -- 'Relative Strength (vs Nifty 50)',
-                display_df = res_df[['name', 'Breakout_price', 'Days since consolidation']].rename(
-                    columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
-                )
-
-
                 df_final_technical_funda = pd.merge(res_df, symboldf2, how='left', on='name')
                 df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
                 df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda, how='left', on='BSE Code')
 
 
+                df_final_technical_funda3 = df_final_technical_funda2[df_final_technical_funda2['Market Capitalization'].notna()]
+
+                left_col.metric(f"Stocks for {st.session_state.last_date}", len(df_final_technical_funda3), border=True)
+                right_col.metric(f"Stock Market Sentiment", "Bullish", border=True)
+                
+                
+                # Prepare columns for display -- 'Relative Strength (vs Nifty 50)',
+                display_df = df_final_technical_funda3[['name', 'Breakout_price', 'Days since consolidation']].rename(
+                    columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
+                )
+
                 # st.session_state.global_display_df = display_df
-                st.session_state.global_display_df = df_final_technical_funda2
+                st.session_state.global_display_df = df_final_technical_funda3
+
 
                 # Dataframe Selection
                 event = st.dataframe(
