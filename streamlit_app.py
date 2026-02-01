@@ -12,6 +12,12 @@ import google.generativeai as genai
 import json
 
 
+# Set pandas to show all columns
+pd.set_option('display.max_rows', None) 
+pd.set_option('display.max_columns', None)
+pd.set_option('display.expand_frame_repr', False) # Prevents wrapping to new lines
+
+
 
 # 1. Initialize "Memory" (Session State)
 if "data_loaded" not in st.session_state:
@@ -76,7 +82,7 @@ fileUrl ='https://assets.upstox.com/market-quote/instruments/exchange/complete.c
 symboldf = pd.read_csv(fileUrl)
 bse_full_stocks = symboldf[symboldf['exchange'].str.contains('BSE', case=False, na=False) & symboldf['instrument_type'].str.contains('EQ', case=False, na=False) &
                            symboldf['last_price'] > 0]
-symboldf2 = bse_full_stocks[['instrument_key', 'name']]
+symboldf2 = bse_full_stocks[['instrument_key', 'name', 'exchange_token']]
 # st.dataframe(symboldf2)
 
 
@@ -110,6 +116,8 @@ def fetch_all_supabase_data(table_name, batch_size=1000):
 
 # Usage:
 df = fetch_all_supabase_data("daily_scans_test")
+
+
 df['date_column'] = pd.to_datetime(df['created_at'])
 
 
@@ -118,8 +126,23 @@ min_date = df['date_column'].min().date()
 max_date = df['date_column'].max().date()
 
 
+# Usage:
+df_funda = fetch_all_supabase_data("company_fundamentals")
 
 
+# df_final_technical_funda = pd.merge(df, symboldf2, how='left', on='name')
+# df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
+# df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda, how='left', on='BSE Code')
+
+
+
+
+
+
+# App code starts here
+
+
+# Page --- Swing Momentum
 
 if choice == "Swing Momentum":
     
@@ -172,7 +195,14 @@ if choice == "Swing Momentum":
                     columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
                 )
 
-                st.session_state.global_display_df = display_df
+
+                df_final_technical_funda = pd.merge(res_df, symboldf2, how='left', on='name')
+                df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
+                df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda, how='left', on='BSE Code')
+
+
+                # st.session_state.global_display_df = display_df
+                st.session_state.global_display_df = df_final_technical_funda2
 
                 # Dataframe Selection
                 event = st.dataframe(
@@ -246,14 +276,16 @@ if 'global_display_df' not in st.session_state:
 
 st.subheader("✨ Stock-AI")
 
+
+# st.write(st.session_state.global_display_df)
+
 # 2. The Chat Interface
 if prompt := st.chat_input("Top 5 stocks basis range days? (e.g., 'Show stocks from Banking sector')"):
     
         # System prompt to ensure Gemini returns ONLY valid JSON
         system_prompt = f"""
-        You are a data assistant. Your job is to use {st.session_state.global_display_df}
-        and perform
-        User request: {prompt} and show the top 5 stock names.
+        Your job is to just use the data I have given: {st.session_state.global_display_df}. Do not hallucinate clearly tell if information is unavailable or you are not able to find from data.
+        Answer the following from the data: {prompt}.
         """
         
         with st.chat_message("user"):
