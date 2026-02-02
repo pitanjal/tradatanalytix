@@ -188,8 +188,9 @@ if choice == "Swing Momentum":
                 left_col, right_col = st.columns([2, 3], gap="small")
                 df_final_technical_funda = pd.merge(res_df, symboldf2, how='left', on='name')
                 df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
-                df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda, how='left', on='BSE Code')
-
+                df_funda_unique = df_funda.drop_duplicates(subset=['BSE Code'])
+                df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda_unique, how='left', on='BSE Code')
+                st.write(len(df_final_technical_funda2))
 
                 df_final_technical_funda3 = df_final_technical_funda2[df_final_technical_funda2['Market Capitalization'].notna()]
 
