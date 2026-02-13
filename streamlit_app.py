@@ -297,7 +297,7 @@ if prompt := st.chat_input("Top 5 stocks in the Energy sector?"):
     # 2. Prepare Data (Token Optimization)
     # Convert only relevant columns to CSV to save tokens
     # We use CSV because it's more token-efficient than JSON for LLMs
-    data_context = st.session_state.global_display_df.to_csv(index=False)
+    data_context = st.session_state.global_display_df.to_markdown(index=False)
 
     # 3. Construct the Prompt
     full_system_prompt = f"""

@@ -6,3 +6,4 @@ google-genai
 streamlit-option-menu
 streamlit-echarts
 google-genai
+tabulate
