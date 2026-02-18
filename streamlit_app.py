@@ -190,12 +190,12 @@ if choice == "Swing Momentum":
                 df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
                 df_funda_unique = df_funda.drop_duplicates(subset=['BSE Code'])
                 df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda_unique, how='left', on='BSE Code')
-                st.write(len(df_final_technical_funda2))
+                # st.write(len(df_final_technical_funda2))
 
                 df_final_technical_funda3 = df_final_technical_funda2[df_final_technical_funda2['Market Capitalization'].notna()]
 
                 left_col.metric(f"Stocks for {st.session_state.last_date}", len(df_final_technical_funda3), border=True)
-                right_col.metric(f"Stock Market Sentiment", "Bullish", border=True)
+                right_col.metric(f"Stock Market Sentiment", "Coming Soon", border=True)
                 
                 
                 # Prepare columns for display -- 'Relative Strength (vs Nifty 50)',
