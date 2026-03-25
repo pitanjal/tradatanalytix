@@ -130,13 +130,13 @@ max_date = df['date_column'].max().date()
 df_funda = fetch_all_supabase_data("company_fundamentals")
 
 
+df_tech = fetch_all_supabase_data("all_stocks_technicals")
+df_tech = df_tech.rename(columns={'Symbol': 'instrument_key'})
+
+
 # df_final_technical_funda = pd.merge(df, symboldf2, how='left', on='name')
 # df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
 # df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda, how='left', on='BSE Code')
-
-
-
-
 
 
 # App code starts here
@@ -189,18 +189,23 @@ if choice == "Swing Momentum":
                 df_final_technical_funda = pd.merge(res_df, symboldf2, how='left', on='name')
                 df_final_technical_funda = df_final_technical_funda.rename(columns={'exchange_token': 'BSE Code'})
                 df_funda_unique = df_funda.drop_duplicates(subset=['BSE Code'])
-                df_final_technical_funda2 = pd.merge(df_final_technical_funda, df_funda_unique, how='left', on='BSE Code')
-                # st.write(len(df_final_technical_funda2))
+                df_final_technical_funda2a = pd.merge(df_final_technical_funda, df_funda_unique, how='left', on='BSE Code')
+                
 
+                df_final_technical_funda2 = pd.merge(df_final_technical_funda2a, df_tech, how='left', on='instrument_key')
+                
                 df_final_technical_funda3 = df_final_technical_funda2[df_final_technical_funda2['Market Capitalization'].notna()]
-
+                df_final_technical_funda3['Dist_EMA_200 %'] = df_final_technical_funda3['Dist_EMA_200 %'].replace(-99, None)
+                df_final_technical_funda3['RS (21)'] = df_final_technical_funda3['RS (21)'].replace(-99, None)
+                df_final_technical_funda3['RS (123)'] = df_final_technical_funda3['RS (123)'].replace(-99, None)
+                # st.write(df_final_technical_funda3)
                 left_col.metric(f"Stocks for {st.session_state.last_date}", len(df_final_technical_funda3), border=True)
                 right_col.metric(f"Stock Market Sentiment", "Coming Soon", border=True)
                 
                 
                 # Prepare columns for display -- 'Relative Strength (vs Nifty 50)',
-                display_df = df_final_technical_funda3[['name', 'Breakout_price', 'Days since consolidation']].rename(
-                    columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation' : 'Range Days'}
+                display_df = df_final_technical_funda3[['name', 'Breakout_price', 'Days since consolidation_x', 'Dist_EMA_200 %', 'RS (21)', 'RS (123)']].rename(
+                    columns={'name': 'Stock Name', 'Breakout_price': 'Price', 'Days since consolidation_x' : 'Range Days', 'Dist_EMA_200 %': 'Distance from EMA 200', 'RS Status': 'Relative Strength vs Nifty 50', 'RS (21)': 'RS 21d', 'RS (123)': 'RS 123d'}
                 )
 
                 # st.session_state.global_display_df = display_df
